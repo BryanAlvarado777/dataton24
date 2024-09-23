@@ -1,4 +1,4 @@
 
 modelo: U-net
-loss: wmape
+loss: mse
 features: epsilon1, epsilon2, delta
