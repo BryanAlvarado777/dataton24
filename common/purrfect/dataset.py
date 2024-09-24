@@ -59,6 +59,5 @@ class EPKADataset(Dataset):
         # Check if the transform is provided
         if self.transform:
             EP = self.transform(EP)
-            KA = self.transform(KA)
 
         return EP, KA
