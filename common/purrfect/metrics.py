@@ -37,6 +37,7 @@ def DICEE(T: torch.Tensor, P: torch.Tensor, alpha: float = 0.5, beta: float = 0.
 
 
 def find_top_k_peaks(im, sigma=3, N=3):
+    im = im.astype('float32') 
     smoothed = gaussian_filter(im, sigma=sigma)
     coordinates = peak_local_max(smoothed, threshold_abs=None, num_peaks=N)
     while len(coordinates) < 3:
@@ -44,7 +45,9 @@ def find_top_k_peaks(im, sigma=3, N=3):
     return coordinates
 
 
-def DPEAKS(T: np.ndarray, P: np.ndarray, num_peaks=3):
+def DPEAKS(T: torch.Tensor, P: torch.Tensor, num_peaks=3):
+    T = T.numpy()
+    P = P.numpy()
     PEAKS_T = find_top_k_peaks(T, N=num_peaks)
     PEAKS_P = find_top_k_peaks(P, N=num_peaks)
     sum_DPEAKS = np.sum(np.abs(PEAKS_T - PEAKS_P))

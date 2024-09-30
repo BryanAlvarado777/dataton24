@@ -2,9 +2,9 @@ import torch
 from tqdm import tqdm  # Progress bar
 from purrfect.metrics import MetricAccumulator, WMAPE, DICEE, DPEAKS
 import os
+from torch.amp import autocast, GradScaler
 
-
-# Combined train/validate function with progress bar
+# Combined train/validate function with progress bar and mixed precision
 def train_validate(
     model,
     loader,
@@ -13,66 +13,49 @@ def train_validate(
     epoch=None,
     metric_accumulator=None,
     device="cuda",
+    use_autocast=True
 ):
-    """
-    Train or validate the model depending on whether an optimizer is provided, with a progress bar.
-
-    Args:
-        model (nn.Module): The model to be trained or validated.
-        loader (DataLoader): DataLoader for the training/validation data.
-        criterion (nn.Module): The loss function (Focal Loss).
-        optimizer (torch.optim.Optimizer or None): Optimizer for training. If None, the function only validates.
-        epoch (int or None): Current epoch number for display (optional).
-        metric_accumulator (dict or None): Dictionary with metrics functions to be used for validation
-
-    Returns:
-        avg_loss (float): The average loss over the dataset.
-    """
     if optimizer:
         model.train()  # Set the model to training mode
         mode = "Train"
+        scaler = GradScaler(device=device,enabled=use_autocast)  # Initialize GradScaler for mixed precision
     else:
         model.eval()  # Set the model to evaluation mode
         mode = "Validate"
+
     if metric_accumulator:
         metric_accumulator.reset()
 
     total_loss = 0.0
+    loop = tqdm(enumerate(loader), desc=f"{mode} Epoch {epoch}", leave=True, total=len(loader))
 
-    # Create a progress bar for the loop
-    loop = tqdm(
-        enumerate(loader), desc=f"{mode} Epoch {epoch}", leave=True, total=len(loader)
-    )
-
-    # Disable gradient calculation for validation
     with torch.set_grad_enabled(optimizer is not None):
         for inputs, targets in loader:
-            # print(f"Batch {i+1}/{len(loader)}")
-            # Move data to the device (GPU if available)
             inputs, targets = inputs.to(device), targets.to(device)
 
-            # Forward pass
-            # print("antes forward")
-            outputs = model(inputs)
-            # print("despues forward")
-            loss = criterion(outputs, targets)
+            # Mixed precision forward pass
+            with autocast("cuda",enabled=use_autocast):
+                #print(inputs)
+                outputs = model(inputs)
+                #print(outputs)
+                loss = criterion(outputs, targets)
+
             if metric_accumulator:
                 metric_accumulator.update(
                     targets.squeeze(1).detach().cpu(), outputs.squeeze(1).detach().cpu()
                 )
-            # Backward pass and optimization (if training)
+
             if optimizer:
                 optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                # Scale the loss before backpropagation for mixed precision
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
 
-            # Accumulate the loss
             total_loss += loss.item()
-            # Update progress bar description with current loss
             loop.update(1)
             loop.set_postfix(loss=loss.item())
 
-    # Calculate average loss and accuracy
     avg_loss = total_loss / len(loader)
     metrics = dict()
     if metric_accumulator:
@@ -95,6 +78,8 @@ def train_model(
     num_epochs=10,
     device="cuda",
     early_stopping_patience=None,
+    use_autocast=True,
+    early_stopping_grace_period=5,
 ):
     """
     Train and validate the model using Adam optimizer and Focal Loss.
@@ -127,7 +112,7 @@ def train_model(
     # Loop through epochs
     for epoch in range(init_epoch, num_epochs + 1):
         if early_stopping_patience:
-            if epochs_since_last_improvement == early_stopping_patience:
+            if epochs_since_last_improvement >= early_stopping_patience and epoch > early_stopping_grace_period:
                 print(
                     f"early stopping: {epochs_since_last_improvement} epochs without improvement"
                 )
@@ -136,7 +121,7 @@ def train_model(
 
         # Train the model
         train_validate(
-            model, train_loader, criterion, optimizer, epoch, metric_accumulator, device
+            model, train_loader, criterion, optimizer, epoch, metric_accumulator, device, use_autocast
         )
 
         # Validate the model
@@ -147,6 +132,7 @@ def train_model(
             epoch=epoch,
             metric_accumulator=metric_accumulator,
             device=device,
+            use_autocast = use_autocast
         )
         if validate_loss <= best_loss:
             torch.save(model.state_dict(), best_model_path)

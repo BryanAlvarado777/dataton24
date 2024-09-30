@@ -67,7 +67,7 @@ def create_next_partitions(prev_partition_number,model,criterion,device="cuda"):
     prev_partition = load_partition(f"partition_{prev_partition_number}_val.json",partitions_path="partitions")
     next_partition = next_val_partition
     create_new_partition(model,criterion, prev_partition, next_partition,f"partition_{next_partition_number}_val.json","partitions",device=device,epoch=f"partition_{next_partition_number}_val")
-def test_model(model,criterion,device="cuda",batch_size=16):
+def test_model(model,criterion,device="cuda",batch_size=16,experiment_name="experiment_1"):
     metric_accumulator = MetricAccumulator.create_default()
     test_loader = create_loader_from_partition_name("partition_test.json",PARTITIONS_PATH,shuffle=False,batch_size=batch_size)
     train_validate(
@@ -78,4 +78,7 @@ def test_model(model,criterion,device="cuda",batch_size=16):
         epoch="test",
         metric_accumulator=metric_accumulator,
         device=device,
+        use_autocast=False
     )
+    with open("test_metrics.txt", "a") as f:
+        f.write(f"{experiment_name}*{metric_accumulator.get_metrics_str()}\n")

@@ -18,3 +18,13 @@ atunception_mae_magandorgraderr_lr,1,5.03,0.0914,58.8,0.0238
 atunception_mae_magandorgraderr_lr,2,3.87,0.0736,44.7,0.0118
 atunception_mae_magandorgraderr_lr,3,3.4,0.0858,41.4,0.0158
 atunception_mae_magandorgraderr_lr,4,5.65,0.0802,41.3,0.016
+unet_mae_magandorgraderr_lr_totalpartition,1,1.91,0.0763,59.1,0.00697
+unet_mae_magandorgraderr_lr_totalpartition,2,1.83,0.0582,49,0.0054
+unet_mae_magandorgraderr_lr_totalpartition,3,1.77,0.0499,38.4,0.00553
+unet_mae_magandorgraderr_lr_totalpartition_buglrpartiiton4,4,1.41,0.0383,28.1,0.00421
+unet_mae_magandorgrad_lr_totalpartition_autocast,1,2.2,0.0896,60.4,0.00721
+unet_mae_magandorgrad_lr_totalpartition_autocast_doublepartition,1,1.89,0.0538,40.7,0.0057
+unet_mae_magandorgrad_lr_totalpartition_autocast_doublepartition,2,1.82,0.0536,39,0.00555
+unet_mae_6features_lr_5parttion_autocast,1,3,0.122,73.6,0.0095
+miniunet_mae_magandorgrar_deep2,1,2.94,0.132,80.6,0.00988
+miniunet_mae_magandorgrar_deep2_less_channels,1,3.61,0.159,90.5,0.0113
