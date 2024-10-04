@@ -3,5 +3,5 @@ experimentos/*/submissions/*
 experimentos/*/models/*
 .ipynb_checkpoints/
 start_colab_server.sh
-__pycache_
+__pycache__
 *.pth
