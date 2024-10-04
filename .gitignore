@@ -5,3 +5,5 @@ experimentos/*/models/*
 start_colab_server.sh
 __pycache__
 *.pth
+id_rsa
+id_rsa.pub
