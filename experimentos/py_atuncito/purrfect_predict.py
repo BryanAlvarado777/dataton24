@@ -494,7 +494,7 @@ class KappaPredictor(nn.Module):
         super(KappaPredictor, self).__init__()
         self.channel_adder = ChannelAdder()
         self.bn = nn.BatchNorm2d(10)
-        self.unet = UNet(i_ch=32)#MultiHeadUNet(2, 1,i_ch=16)
+        self.unet = UNet(10,i_ch=32)#MultiHeadUNet(2, 1,i_ch=16)
     def freeze_encoder(self,freeze=True):
         if freeze:
             for param in self.bn.parameters():
