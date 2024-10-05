@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 
 # %%
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-BATCH_SIZE = 32*4
+BATCH_SIZE = 32*2
 USE_AUTOCAST = False
 EARLY_STOPPING_PATIENCE = 5
 EARLY_STOPPING_GRACE_PERIOD = 8
@@ -109,12 +109,11 @@ class ChannelAdder(nn.Module):
             magnitude,
             angle,
             e_norm,
-            self.grad_magnitude(e),
-            #cross_product,
-            #delta,
+            cross_product,
+            delta,
             simmilarity #min max and mean simmilarity
         ], dim=1)
-        #output = torch.cat([output, self.grad_magnitude(output)], dim=1)
+        output = torch.cat([output, self.grad_magnitude(output)], dim=1)
 
         return output
 
@@ -300,12 +299,17 @@ class ResBlock(nn.Module):
         else:
             self.seq1 = nn.Sequential(
                 ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
-                #ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
+                ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
                 ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True,use_relu=False)
             )
             self.seq2 = nn.Sequential(
                 ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
-                #ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
+                ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
+                ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, use_relu=False)
+            )
+            self.seq3 = nn.Sequential(
+                ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
+                ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
                 ConBnRelu(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, use_relu=False)
             )
 
@@ -315,6 +319,7 @@ class ResBlock(nn.Module):
         x = self.rescale(x)
         x = F.relu(self.seq1(x) + x, inplace=True)
         x = F.relu(self.seq2(x) + x, inplace=True)
+        x = F.relu(self.seq3(x) + x, inplace=True)
         return x
 
 class UNetEncoder(nn.Module):
@@ -494,7 +499,7 @@ class KappaPredictor(nn.Module):
         super(KappaPredictor, self).__init__()
         self.channel_adder = ChannelAdder()
         self.bn = nn.BatchNorm2d(10)
-        self.unet = UNet(10,i_ch=32)#MultiHeadUNet(2, 1,i_ch=16)
+        self.unet = UNet(20,i_ch=16)#MultiHeadUNet(2, 1,i_ch=16)
     def freeze_encoder(self,freeze=True):
         if freeze:
             for param in self.bn.parameters():
