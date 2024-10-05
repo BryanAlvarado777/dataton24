@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 
 # %%
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-BATCH_SIZE = 32*2
+BATCH_SIZE = 32*4
 USE_AUTOCAST = True
 EARLY_STOPPING_PATIENCE = 5
 EARLY_STOPPING_GRACE_PERIOD = 8
