@@ -11,46 +11,29 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from purrfect.dataset import EPKADataset, load_partition,save_partition, create_train_valid_loaders
-from torch.utils.data import DataLoader
+#from purrfect import load_partition,save_partition, create_train_valid_loaders, RandomTransform
+from purrfect.dataset import load_partition,save_partition, create_train_valid_loaders, RandomTransform
 
-from purrfect.training import train_model,train_validate
+from purrfect.training import train_model
 import torch.optim as optim
 
-from purrfect.metrics import MetricAccumulator
-from purrfect.active_learning import create_new_partition,create_next_partitions, test_model
+from purrfect.active_learning import create_new_partition, test_model
 
 from sklearn.model_selection import train_test_split
-from purrfect.submission import create_submission, create_submission_v2
+#from purrfect.submission import create_submission
 
 # %%
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-BATCH_SIZE = 16*2
+BATCH_SIZE = 32
 USE_AUTOCAST = False
-EARLY_STOPPING_PATIENCE = 3
-EARLY_STOPPING_GRACE_PERIOD = 5
+EARLY_STOPPING_PATIENCE = 5
+EARLY_STOPPING_GRACE_PERIOD = 8
 PARTITION_SIZE = 2
 
 # %% [markdown]
 # ## Definición modelo
 
 # %%
-# Define the double convolution block
-class DoubleConv(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(DoubleConv, self).__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x):
-        return self.conv(x)
-
 class GradientMagnitude(nn.Module):
     def __init__(self):
         super(GradientMagnitude, self).__init__()
@@ -98,6 +81,8 @@ def aggregate_similarity_cosine(tensor):
     aggregate_similarity = torch.cat((max_similarity, min_similarity), dim=1)  # (B, 3, H, W,1)
 
     return aggregate_similarity.squeeze(-1)  # (B, 3, H, W)
+
+# %%
 class ChannelAdder(nn.Module):
     def __init__(self):
         super(ChannelAdder, self).__init__()
@@ -134,7 +119,20 @@ class ChannelAdder(nn.Module):
         ], dim=1)
 
         return output
+class DoubleConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(DoubleConv, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
 
+    def forward(self, x):
+        return self.conv(x)
 # Define the U-Net model
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -208,9 +206,11 @@ class UNet(nn.Module):
         out = self.final_conv(d1)
         return out
 
+
 # %% [markdown]
 # ## Creación particion inicial
 
+# %%
 def create_next_partitions(current_partition,k=PARTITION_SIZE):#Creacion de particiones train y valid
     init_partition = []
     for i in range(k):
@@ -274,7 +274,7 @@ def many_partitions_v2(start,end,model,criterion,transform=None,full_frecuency=5
             last_checkpoint_path,
             criterion,
             optimizer,
-            num_epochs=50,
+            num_epochs=100,
             device=DEVICE,
             early_stopping_patience=EARLY_STOPPING_PATIENCE,
             use_autocast=USE_AUTOCAST,
@@ -285,19 +285,41 @@ def many_partitions_v2(start,end,model,criterion,transform=None,full_frecuency=5
             test_model(model,criterion,device=DEVICE,batch_size=BATCH_SIZE,experiment_name=f"adamw_atunet_freeze__{current_partition}")
         else:
             print("No best model found in partition",current_partition)
+        
 
 # %% [markdown]
 # ## Carga modelo
 
+# %% [markdown]
+# 
+
+# %%
+class L2LogLoss(nn.Module):
+    def __init__(self):
+        super(L2LogLoss, self).__init__()
+    def rescale(self, x):
+        return x.sign()*(x.abs().log1p())
+    def forward(self, y_pred, y_true):
+        return F.mse_loss(self.rescale(y_pred),self.rescale(y_true))
+class L1LogLoss(nn.Module):
+    def __init__(self):
+        super(L1LogLoss, self).__init__()
+    def rescale(self, x):
+        return x.sign()*(x.abs().log1p())
+    def forward(self, y_pred, y_true):
+        return F.l1_loss(self.rescale(y_pred),self.rescale(y_true))
+
 # %%
 #Define model
-model = UNet( 3, 1)
-model = model.to(DEVICE)
+model = UNet(3,1).to(DEVICE)
 # Define Loss
-criterion = torch.nn.L1Loss()
+criterion = nn.L1Loss()
+transform = None#RandomTransform()
 
 # %%
-print( "total de parametros: ",sum([p.numel() for p in model.parameters() if p.requires_grad]))
+print("Parametros entrenables del modelo: ",sum([p.numel() for p in model.parameters() if p.requires_grad]))
 
-many_partitions_v2(1,10,model,criterion,transform=None)
+# %%
+many_partitions_v2(1,10,model,criterion,transform=transform)
+
 
