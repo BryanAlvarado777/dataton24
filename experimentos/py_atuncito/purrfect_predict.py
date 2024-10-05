@@ -24,7 +24,7 @@ from sklearn.model_selection import train_test_split
 # %%
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 BATCH_SIZE = 32*4
-USE_AUTOCAST = True
+USE_AUTOCAST = False
 EARLY_STOPPING_PATIENCE = 5
 EARLY_STOPPING_GRACE_PERIOD = 8
 PARTITION_SIZE = 5
@@ -255,7 +255,7 @@ class PSA(nn.Module):
         return self.pa(x,x)
 
 class ConBnRelu(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1,bias=True,use_bn=False,use_relu=True):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1,bias=True,use_bn=True,use_relu=True):
         super(ConBnRelu, self).__init__()
 
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding,
@@ -468,7 +468,7 @@ class KappaPredictor(nn.Module):
         super(KappaPredictor, self).__init__()
         self.channel_adder = ChannelAdder()
         self.bn = nn.BatchNorm2d(10)
-        self.unet = MultiHeadUNet(2, 1,i_ch=8)
+        self.unet = MultiHeadUNet(2, 1,i_ch=16)
     def freeze_encoder(self,freeze=True):
         if freeze:
             for param in self.bn.parameters():
@@ -587,7 +587,7 @@ class L1LogLoss(nn.Module):
 #Define model
 model = KappaPredictor().to(DEVICE)
 # Define Loss
-criterion = L1LogLoss()
+criterion = nn.L1Loss()
 transform = None#RandomTransform()
 
 # %%
