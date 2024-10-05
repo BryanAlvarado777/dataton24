@@ -140,7 +140,7 @@ class UNet(nn.Module):
         # Channel Adder
         self.channel_adder = ChannelAdder()
         # Encoder
-        self.encoder1 = DoubleConv(in_channels+10, 64)
+        self.encoder1 = DoubleConv(in_channels+9, 64)
         self.encoder2 = DoubleConv(64, 128)
         self.encoder3 = DoubleConv(128, 256)
         self.encoder4 = DoubleConv(256, 512)
