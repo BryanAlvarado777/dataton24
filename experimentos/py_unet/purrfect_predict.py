@@ -320,6 +320,6 @@ transform = None#RandomTransform()
 print("Parametros entrenables del modelo: ",sum([p.numel() for p in model.parameters() if p.requires_grad]))
 
 # %%
-many_partitions_v2(1,10,model,criterion,transform=transform)
+many_partitions_v2(10,31,model,criterion,transform=transform)
 
 
