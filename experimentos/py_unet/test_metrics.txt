@@ -1,0 +1,17 @@
+adamw_atunet_freeze__1*WMAPE: 1.7598 DICE: 0.0490 DPEAKS: 33.8107
+adamw_atunet_freeze__2*WMAPE: 1.6194 DICE: 0.0431 DPEAKS: 32.5529
+adamw_atunet_freeze__3*WMAPE: 1.5570 DICE: 0.0432 DPEAKS: 31.5652
+adamw_atunet_freeze__4*WMAPE: 1.5253 DICE: 0.0416 DPEAKS: 32.0279
+adamw_atunet_freeze__5*WMAPE: 1.4904 DICE: 0.0408 DPEAKS: 31.4569
+adamw_atunet_freeze__6*WMAPE: 1.6157 DICE: 0.0394 DPEAKS: 28.3919
+adamw_atunet_freeze__7*WMAPE: 1.4527 DICE: 0.0361 DPEAKS: 26.4723
+adamw_atunet_freeze__8*WMAPE: 1.4450 DICE: 0.0364 DPEAKS: 25.3956
+adamw_atunet_freeze__9*WMAPE: 1.4015 DICE: 0.0360 DPEAKS: 27.2689
+adamw_atunet_freeze__10*WMAPE: 1.4199 DICE: 0.0350 DPEAKS: 25.9073
+adamw_atunet_freeze__11*WMAPE: 1.6581 DICE: 0.0397 DPEAKS: 35.8639
+adamw_atunet_freeze__12*WMAPE: 1.4198 DICE: 0.0368 DPEAKS: 28.2468
+adamw_atunet_freeze__13*WMAPE: 1.3713 DICE: 0.0355 DPEAKS: 25.4179
+adamw_atunet_freeze__14*WMAPE: 1.3716 DICE: 0.0355 DPEAKS: 25.4112
+adamw_atunet_freeze__15*WMAPE: 1.3909 DICE: 0.0357 DPEAKS: 25.6491
+adamw_atunet_freeze__16*WMAPE: 1.4612 DICE: 0.0367 DPEAKS: 25.9067
+adamw_atunet_freeze__17*WMAPE: 1.3902 DICE: 0.0352 DPEAKS: 25.5407
