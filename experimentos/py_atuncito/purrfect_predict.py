@@ -463,12 +463,38 @@ class MultiHeadUNet(nn.Module):
         d = self.decoder(b, e1, e2, e3, e4)
         return self.output(d)
 
+class UNet(nn.Module):
+    def __init__(self,in_channels, i_ch=16):
+        super(UNet, self).__init__()
+        self.embedder = nn.Sequential(
+            ResBlock(in_channels, i_ch),  # in_channelsx128x128 -> i_chx128x128
+            ResBlock(i_ch, i_ch),  # i_chx128x128 -> i_chx128x128
+        )
+        self.encoder = UNetEncoder(i_ch)
+        self.bottle = UNetBottleneck(i_ch)
+        self.decoder = UNetDecoder(i_ch)
+        self.output = nn.Sequential(
+            ResBlock(i_ch, i_ch),  # in_channelsx128x128 -> i_chx128x128
+            nn.Conv2d(i_ch, 1, kernel_size=1)
+        )
+    def freeze_encoder(self,freeze=True):
+        for param in self.encoder.parameters():
+            param.requires_grad = not freeze
+        for param in self.embedder.parameters():
+            param.requires_grad = not freeze
+    def forward(self, x):
+        e1,e2,e3,e4 = self.encoder(self.embedder(x))
+        b = self.bottle(e4)
+        d = self.decoder(b, e1, e2, e3, e4)
+        return self.output(d)
+        
+        
 class KappaPredictor(nn.Module):
     def __init__(self):
         super(KappaPredictor, self).__init__()
         self.channel_adder = ChannelAdder()
         self.bn = nn.BatchNorm2d(10)
-        self.unet = MultiHeadUNet(2, 1,i_ch=16)
+        self.unet = UNet(i_ch=32)#MultiHeadUNet(2, 1,i_ch=16)
     def freeze_encoder(self,freeze=True):
         if freeze:
             for param in self.bn.parameters():
@@ -477,8 +503,8 @@ class KappaPredictor(nn.Module):
     def forward(self, x):
         x = self.channel_adder(x)
         x = self.bn(x)
-        x1,x2,x3,x4,x5 = torch.split(x, 2, dim=1)
-        out = self.unet(x1,x2,x3,x4,x5)
+        #x1,x2,x3,x4,x5 = torch.split(x, 2, dim=1)
+        out = self.unet(x)
         return out
 
 # %% [markdown]
