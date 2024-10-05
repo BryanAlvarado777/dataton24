@@ -1,0 +1,43 @@
+# Use Miniconda as the base image
+FROM continuumio/miniconda3
+
+# Set the working directory
+WORKDIR /app
+
+# Install OpenSSH server
+RUN apt-get update && apt-get install -y openssh-server
+
+# Create the SSH directory and copy your public SSH key
+RUN mkdir -p /root/.ssh
+COPY id_rsa_externo.pub /root/.ssh/authorized_keys
+RUN chmod 600 /root/.ssh/authorized_keys
+
+# Configure SSH to allow root login with key authentication
+RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+
+# Start the SSH service
+RUN service ssh start
+
+# Set up the SSH service to run in the background
+RUN mkdir -p /var/run/sshd
+
+# Expose SSH port
+EXPOSE 22
+
+# Copy your private SSH key and known hosts
+COPY id_rsa /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa
+
+# Add GitHub to known_hosts
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+
+# Clone the GitHub repository using SSH (replace YOUR-USERNAME and YOUR-REPO)
+RUN git clone git@github.com:BryanAlvarado777/dataton.git /app
+
+# Install dependencies from the environment.yml file
+RUN conda env create -f /app/environment.yml
+RUN apt-get update && apt-get install -y screen
+
+# Start SSH and keep the container alive with the SSH server running
+CMD ["/usr/sbin/sshd", "-D"]
