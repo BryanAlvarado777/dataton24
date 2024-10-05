@@ -614,7 +614,7 @@ class L1LogLoss(nn.Module):
 model = KappaPredictor().to(DEVICE)
 # Define Loss
 criterion = nn.L1Loss()
-transform = None#RandomTransform()
+transform = RandomTransform()
 
 # %%
 print("Parametros entrenables del modelo: ",sum([p.numel() for p in model.parameters() if p.requires_grad]))
