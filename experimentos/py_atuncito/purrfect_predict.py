@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 
 # %%
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-BATCH_SIZE = 32*2
+BATCH_SIZE = 32
 USE_AUTOCAST = False
 EARLY_STOPPING_PATIENCE = 5
 EARLY_STOPPING_GRACE_PERIOD = 8
@@ -498,7 +498,7 @@ class KappaPredictor(nn.Module):
     def __init__(self):
         super(KappaPredictor, self).__init__()
         self.channel_adder = ChannelAdder()
-        self.bn = nn.BatchNorm2d(10)
+        self.bn = nn.BatchNorm2d(20)
         self.unet = UNet(20,i_ch=16)#MultiHeadUNet(2, 1,i_ch=16)
     def freeze_encoder(self,freeze=True):
         if freeze:
