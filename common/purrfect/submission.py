@@ -7,16 +7,15 @@ from purrfect.paths import DATASET_PATH
 from torch.utils.data import DataLoader
 from purrfect.dataset import TestDataset
 
-
 def create_submission(
-    model, submission_name, submission_path="submissions", device="cuda"
+    model, submission_name, submission_path="submissions", device="cuda",source="test_public"
 ):
     model.eval()
     # crea carpeta submission/submission_name/purrfectpredict
     path = os.path.join(submission_path, submission_name, "purrfectpredict")
     os.makedirs(path, exist_ok=True)
     # crea un dataloader con los
-    inputs = glob.glob(os.path.join(DATASET_PATH, f"test_public/*.npy"))
+    inputs = glob.glob(os.path.join(DATASET_PATH, f"{source}/*.npy"))
     loop = tqdm(inputs, desc=f"Create submission total its {len(inputs)}", leave=False)
     # evala el modelo y crea un archivo .npy por cada prediccion del modelo, el nombre del archivo .npy debe ser el mismo que del archivo de input
     with torch.no_grad():
