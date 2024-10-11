@@ -52,6 +52,6 @@ def plot_kappas(kappa_true,kappa_pred) -> None:
 
     cbar = fig.colorbar(im_true, ax=axs, orientation='horizontal', fraction=0.02, pad=0.1)
     cbar.set_label(r'$\kappa$')
-    fig.suptitle('Imágenes de salida para el problema', fontsize=14)
+    #fig.suptitle('', fontsize=14)
     #plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
