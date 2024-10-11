@@ -27,7 +27,7 @@ conda activate nombre_del_entorno
 
 Para generar los tableros, ejecuta el Jupyter Notebook experimentos/unet_mae_magandorgraderr_lr_totalpartition/purrfect_predictors_dataton.ipynb. Este notebook generará automáticamente las submissions y guardará los archivos de salida en la carpeta submissions. Los archivos generados serán:
 
-- best_model_partition10v2
-- private_partition4
+- best_model_partition_10_v2
+- private_partition_14
 
 
