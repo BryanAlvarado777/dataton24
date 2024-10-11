@@ -1,3 +1,0 @@
-adamw_atunet_freeze__1*WMAPE: 2.7651 DICE: 0.5084 DPEAKS: 224.9856
-adamw_atunet_freeze__2*WMAPE: 2.8712 DICE: 0.5117 DPEAKS: 224.7380
-adamw_atunet_freeze__3*WMAPE: 2.6649 DICE: 0.5082 DPEAKS: 224.8734
